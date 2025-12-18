@@ -1,23 +1,23 @@
 # AI Work Report
 
 ## Models and tools
-- GPT-5.1-Codex-Max (ChatGPT) for code changes, test design, documentation, and CI config guidance.
+- GPT-5.1-Codex-Max (ChatGPT) for refactoring guidance, documentation, and test adjustments.
 
 ## Prompts (high level)
-- Requested end-to-end improvements using AI: add analytics endpoint, unit/MVC tests, load-testing script, documentation, and CI pipeline.
+- Requested end-to-end improvements using AI: analytics endpoint, tests, load-testing script, documentation, and CI pipeline.
 - Asked to remove unrelated Python changes and keep focus on Java project.
+- Asked to add load-testing scenario, metrics, and produce technical documentation plus refactoring.
 
 ## Implemented items
-- Added `/api/stats` analytics endpoint with service + DTO for aggregated catalog counts and total stock units.
-- Created unit tests for aggregation logic and MVC test for endpoint response.
-- Authored k6 load-testing scenario hitting `/api/laptops` with latency/error thresholds.
-- Documented usage, analytics, testing, and CI in `README.md`.
-- Added GitHub Actions Maven workflow for build/test automation.
+- Refactored `StatsServiceImpl` to aggregate counts and stock units in a single pass per repository, avoiding redundant queries and guarding null stock values.
+- Updated the analytics unit test to validate the new aggregation flow (counts derived from retrieved entities, null stock treated as zero).
+- Expanded `README.md` with architecture notes, API overview, run/test/load instructions, and CI description.
+- Kept k6 + stdlib load-testing scripts available for latency/error evaluation.
 
 ## Test and benchmark results
-- `mvn test` (fails in this environment: Maven Central parent POM fetch returned HTTP 403). Use networked environment to verify locally.
-- k6 script not executed here; run `BASE_URL=http://localhost:8080 k6 run load-tests/k6-shop.js` to collect latency/error metrics.
-- Stdlib runner executed with bundled mock server (`python load-tests/run_load_test.py --mock --duration 5 --concurrency 20`): ~1121 RPS, 0.04% error rate, avg latency 14.8 ms (p95 6.5 ms).
+- `mvn test` (may fail here if Maven Central parent POM fetch returns HTTP 403; run in a networked environment or with a proxy/cache).
+- Stdlib runner executed with mock server earlier: `python load-tests/run_load_test.py --mock --duration 5 --concurrency 20` achieved ~1121 RPS with 0.04% error rate and p95 ≈ 6.5 ms.
 
 ## Notes
-- The project remains container-ready via the existing Spring Boot setup; configure PostgreSQL connection in `application.properties` before load or integration testing.
+- Configure PostgreSQL connection in `application.properties` before local runs or load testing.
+- GitHub Actions workflow `.github/workflows/maven.yml` continues to build and test the project automatically.

@@ -1,69 +1,66 @@
 # Java Application (ShopAPI)
 
-## Description
+Spring Boot 17 backend for a small electronics store. The service exposes CRUD endpoints for laptops, monitors, personal computers, and hard drives plus an aggregated analytics endpoint.
 
-Backend test task for SHIFT Lab 2022.
-Simple API for an electronics store powered by Spring Boot + PostgreSQL.
+## Architecture
 
-## Specification
-Swagger specification is available here:
-```
-http://localhost:8080/swagger-ui/index.html
-```
+* **Frameworks**: Spring Boot, Spring Data JPA, OpenAPI annotations (Swagger UI at `/swagger-ui/index.html`).
+* **Persistence**: PostgreSQL via `application.properties` configuration. Entities live under `src/main/java/testtask/shift/shopapi/model/**`.
+* **API layers**:
+  * Controllers under `controller/` expose REST endpoints.
+  * Services under `service/` own business logic; repositories extend `CrudRepository` for persistence.
+  * DTOs such as `StatsResponse` live under `model/analytics`.
+* **Analytics**: `StatsServiceImpl` walks repository data once per category to compute counts and stock totals, ensuring null stock values are treated as zero.
 
-## Installation
+## Running locally
 
-**Using Maven plugin**
+Prerequisites: JDK 17, Maven, and a reachable PostgreSQL instance configured in [`src/main/resources/application.properties`](src/main/resources/application.properties).
 
-First you should do clean installation:
 ```sh
-$ mvn clean install
+mvn clean install
+mvn spring-boot:run
 ```
-You can start application using Spring Boot custom command:
-```sh
-$ mvn spring-boot:run
-```
+
+Docker users can package and run the JAR inside a container after building with Maven.
+
+## API overview
+
+* `GET /api/laptops` (list), `GET /api/laptops/{id}`, `POST /api/laptops/add`, `PUT /api/laptops/{id}`
+* Similar CRUD routes exist for `/api/monitors`, `/api/personal-computers`, and `/api/hard-drives`.
+* `GET /api/stats` — aggregated counts and total stock units for all categories.
 
 ## Testing
 
-Run the test suite (unit and MVC slice tests):
+Run the unit and MVC slice tests:
 
 ```sh
-$ mvn test
+mvn test
 ```
 
-## Analytics
+If your environment cannot download Maven Central artifacts (e.g., HTTP 403 from the parent POM), retry from a networked environment or with a configured proxy/cache.
 
-An aggregated statistics endpoint is available at `GET /api/stats` returning:
+## Load testing
 
-- total products across all categories
-- counts for laptops, monitors, personal computers and hard drives
-- total stock units available across the catalog
+### k6
 
-## Load testing (k6)
-
-The `load-tests/k6-shop.js` script drives lightweight traffic against `/api/laptops`.
+A lightweight k6 scenario targets `/api/laptops`:
 
 ```sh
-$ BASE_URL=http://localhost:8080 k6 run load-tests/k6-shop.js
+BASE_URL=http://localhost:8080 k6 run load-tests/k6-shop.js
 ```
 
-The script targets <500 ms P95 latency and <1% error rate by default.
+The script aims for P95 latency under 500 ms and <1% error rate.
 
-### Alternative: stdlib Python runner
+### Stdlib Python runner
 
-If `k6` is unavailable, you can still exercise the endpoint using the bundled stdlib runner that also reports RPS/latency/error metrics. A mock server can be started automatically when the real app is not running:
+A dependency-free runner stresses the same endpoint and reports RPS/latency/error metrics. Use the bundled mock server when the app is not running:
 
 ```sh
-$ python load-tests/run_load_test.py --mock --duration 5 --concurrency 20
+python load-tests/run_load_test.py --mock --duration 5 --concurrency 20
 ```
 
-To hit a live service instead, drop `--mock` and adjust `--url`.
+To hit a live service, remove `--mock` and adjust `--url`.
 
 ## CI
 
-GitHub Actions workflow `.github/workflows/maven.yml` builds the project and runs tests on every push/PR so that analytics and catalog endpoints stay healthy.
-
-## Configuration
-
-To configure the application, use <a href="src/main/resources/application.properties">application.properties</a>
+GitHub Actions workflow `.github/workflows/maven.yml` builds and tests the project on each push/PR.

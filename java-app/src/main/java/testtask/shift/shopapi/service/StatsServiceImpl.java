@@ -27,31 +27,32 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public StatsResponse getStats() {
-        long laptops = laptopRepository.count();
-        long monitors = monitorRepository.count();
-        long personalComputers = personalComputerRepository.count();
-        long hardDrives = hardDriveRepository.count();
+        CategoryTotals laptopTotals = computeTotals(laptopRepository.findAll());
+        CategoryTotals monitorTotals = computeTotals(monitorRepository.findAll());
+        CategoryTotals pcTotals = computeTotals(personalComputerRepository.findAll());
+        CategoryTotals hddTotals = computeTotals(hardDriveRepository.findAll());
 
-        long totalProducts = laptops + monitors + personalComputers + hardDrives;
-        long totalStockUnits = computeTotalStock();
+        long totalProducts = laptopTotals.count + monitorTotals.count + pcTotals.count + hddTotals.count;
+        long totalStockUnits = laptopTotals.stockUnits + monitorTotals.stockUnits + pcTotals.stockUnits + hddTotals.stockUnits;
 
-        return new StatsResponse(totalProducts, laptops, monitors, personalComputers, hardDrives, totalStockUnits);
+        return new StatsResponse(totalProducts, laptopTotals.count, monitorTotals.count, pcTotals.count, hddTotals.count, totalStockUnits);
     }
 
-    private long computeTotalStock() {
-        return sumStock(laptopRepository.findAll())
-                + sumStock(monitorRepository.findAll())
-                + sumStock(personalComputerRepository.findAll())
-                + sumStock(hardDriveRepository.findAll());
-    }
+    private CategoryTotals computeTotals(Iterable<? extends Product> products) {
+        long count = 0L;
+        long stockUnits = 0L;
 
-    private long sumStock(Iterable<? extends Product> products) {
-        long total = 0L;
         for (Product product : products) {
-            if (product.getNumberOfProductsInStock() != null) {
-                total += product.getNumberOfProductsInStock();
+            count++;
+            Long stock = product.getNumberOfProductsInStock();
+            if (stock != null) {
+                stockUnits += stock;
             }
         }
-        return total;
+
+        return new CategoryTotals(count, stockUnits);
+    }
+
+    private record CategoryTotals(long count, long stockUnits) {
     }
 }

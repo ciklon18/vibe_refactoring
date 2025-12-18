@@ -11,6 +11,7 @@ import testtask.shift.shopapi.model.laptop.Laptop;
 import testtask.shift.shopapi.model.monitor.Monitor;
 import testtask.shift.shopapi.model.pc.FormFactor;
 import testtask.shift.shopapi.model.pc.PersonalComputer;
+import testtask.shift.shopapi.model.laptop.LaptopSize;
 import testtask.shift.shopapi.repository.HardDriveRepository;
 import testtask.shift.shopapi.repository.LaptopRepository;
 import testtask.shift.shopapi.repository.MonitorRepository;
@@ -41,24 +42,29 @@ class StatsServiceImplTest {
 
     @Test
     void aggregatesCountsAndStockAcrossRepositories() {
-        when(laptopRepository.count()).thenReturn(3L);
-        when(monitorRepository.count()).thenReturn(2L);
-        when(personalComputerRepository.count()).thenReturn(4L);
-        when(hardDriveRepository.count()).thenReturn(1L);
-
-        when(laptopRepository.findAll()).thenReturn(List.of(new Laptop(1L, "S1", "Maker", BigDecimal.ONE, 2L, null)));
-        when(monitorRepository.findAll()).thenReturn(List.of(new Monitor(2L, "S2", "Maker", BigDecimal.TEN, 3L, 24),
-                new Monitor(3L, "S3", "Maker", BigDecimal.TEN, null, 27)));
-        when(personalComputerRepository.findAll()).thenReturn(List.of(new PersonalComputer(4L, "S4", "Maker", BigDecimal.TEN, 5L, FormFactor.DESKTOP)));
-        when(hardDriveRepository.findAll()).thenReturn(List.of(new HardDrive(5L, "S5", "Maker", BigDecimal.TEN, 7L, 256)));
+        when(laptopRepository.findAll()).thenReturn(List.of(
+                new Laptop(1L, "S1", "Maker", BigDecimal.ONE, 2L, LaptopSize.Inch15),
+                new Laptop(2L, "S2", "Maker", BigDecimal.ONE, null, LaptopSize.Inch13)
+        ));
+        when(monitorRepository.findAll()).thenReturn(List.of(
+                new Monitor(3L, "S3", "Maker", BigDecimal.TEN, 3L, 24),
+                new Monitor(4L, "S4", "Maker", BigDecimal.TEN, null, 27)
+        ));
+        when(personalComputerRepository.findAll()).thenReturn(List.of(
+                new PersonalComputer(5L, "S5", "Maker", BigDecimal.TEN, 5L, FormFactor.DESKTOP),
+                new PersonalComputer(6L, "S6", "Maker", BigDecimal.TEN, 0L, FormFactor.NETTOP)
+        ));
+        when(hardDriveRepository.findAll()).thenReturn(List.of(
+                new HardDrive(7L, "S7", "Maker", BigDecimal.TEN, 7L, 256)
+        ));
 
         StatsResponse stats = statsService.getStats();
 
-        assertThat(stats.getLaptops()).isEqualTo(3);
+        assertThat(stats.getLaptops()).isEqualTo(2);
         assertThat(stats.getMonitors()).isEqualTo(2);
-        assertThat(stats.getPersonalComputers()).isEqualTo(4);
+        assertThat(stats.getPersonalComputers()).isEqualTo(2);
         assertThat(stats.getHardDrives()).isEqualTo(1);
-        assertThat(stats.getTotalProducts()).isEqualTo(10);
+        assertThat(stats.getTotalProducts()).isEqualTo(7);
         assertThat(stats.getTotalStockUnits()).isEqualTo(17);
     }
 }
