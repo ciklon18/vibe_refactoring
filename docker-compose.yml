@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  spring-app:
+    build:
+      context: ./java-app
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - spring-db
+    ports:
+      - "${SPRING_APP_PORT:-8081}:8080"
+
+  spring-db:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - spring-db-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_HOST_PORT:-5434}:5432"
+
+volumes:
+  spring-db-data:
