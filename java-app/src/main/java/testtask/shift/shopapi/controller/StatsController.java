@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import testtask.shift.shopapi.model.analytics.StatsResponse;
+import testtask.shift.shopapi.model.analytics.StatsInsightsResponse;
 import testtask.shift.shopapi.service.StatsService;
 
 @RestController
@@ -28,5 +29,14 @@ public class StatsController {
     @GetMapping(produces = "application/json")
     public @NotNull StatsResponse getStats() {
         return statsService.getStats();
+    }
+
+    @Operation(summary = "Get detailed analytics")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Per-category metrics including price and inventory value",
+                    content = @Content(schema = @Schema(implementation = StatsInsightsResponse.class)))})
+    @GetMapping(value = "/insights", produces = "application/json")
+    public @NotNull StatsInsightsResponse getInsights() {
+        return statsService.getInsights();
     }
 }

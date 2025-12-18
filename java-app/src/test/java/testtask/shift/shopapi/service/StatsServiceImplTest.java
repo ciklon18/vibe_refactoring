@@ -5,6 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import testtask.shift.shopapi.model.analytics.CategoryMetrics;
+import testtask.shift.shopapi.model.analytics.StatsInsightsResponse;
 import testtask.shift.shopapi.model.analytics.StatsResponse;
 import testtask.shift.shopapi.model.hdd.HardDrive;
 import testtask.shift.shopapi.model.laptop.Laptop;
@@ -66,5 +68,35 @@ class StatsServiceImplTest {
         assertThat(stats.getHardDrives()).isEqualTo(1);
         assertThat(stats.getTotalProducts()).isEqualTo(7);
         assertThat(stats.getTotalStockUnits()).isEqualTo(17);
+    }
+
+    @Test
+    void derivesCategoryInsightsWithAveragePriceAndInventoryValue() {
+        when(laptopRepository.findAll()).thenReturn(List.of(
+                new Laptop(1L, "S1", "Maker", new BigDecimal("10.00"), 2L, LaptopSize.Inch15),
+                new Laptop(2L, "S2", "Maker", new BigDecimal("20.00"), 1L, LaptopSize.Inch13)
+        ));
+        when(monitorRepository.findAll()).thenReturn(List.of(
+                new Monitor(3L, "S3", "Maker", new BigDecimal("100.00"), 0L, 24)
+        ));
+        when(personalComputerRepository.findAll()).thenReturn(List.of(
+                new PersonalComputer(5L, "S5", "Maker", BigDecimal.TEN, null, FormFactor.DESKTOP)
+        ));
+        when(hardDriveRepository.findAll()).thenReturn(List.of());
+
+        StatsInsightsResponse insights = statsService.getInsights();
+
+        assertThat(insights.getTotalProducts()).isEqualTo(4);
+        assertThat(insights.getTotalStockUnits()).isEqualTo(3);
+        assertThat(insights.getTotalInventoryValue()).isEqualByComparingTo("40.00");
+
+        CategoryMetrics laptops = insights.getCategories().get(0);
+        assertThat(laptops.getCategory()).isEqualTo("laptops");
+        assertThat(laptops.getAveragePrice()).isEqualByComparingTo("15.00");
+        assertThat(laptops.getInventoryValue()).isEqualByComparingTo("40.00");
+
+        CategoryMetrics monitors = insights.getCategories().get(1);
+        assertThat(monitors.getStockUnits()).isZero();
+        assertThat(monitors.getInventoryValue()).isEqualByComparingTo("0");
     }
 }

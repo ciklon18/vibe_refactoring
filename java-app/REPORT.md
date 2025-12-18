@@ -10,8 +10,9 @@
 
 ## Implemented items
 - Refactored `StatsServiceImpl` to aggregate counts and stock units in a single pass per repository, avoiding redundant queries and guarding null stock values.
-- Updated the analytics unit test to validate the new aggregation flow (counts derived from retrieved entities, null stock treated as zero).
-- Expanded `README.md` with architecture notes, API overview, run/test/load instructions, and CI description.
+- Added `/api/stats/insights` endpoint with per-category pricing averages and inventory value totals.
+- Updated analytics unit tests and MVC slice tests to cover both endpoints and new metrics.
+- Expanded `README.md` with architecture notes, API overview, Docker packaging, run/test/load instructions, and CI description.
 - Kept k6 + stdlib load-testing scripts available for latency/error evaluation.
 
 ## Test and benchmark results
@@ -20,4 +21,4 @@
 
 ## Notes
 - Configure PostgreSQL connection in `application.properties` before local runs or load testing.
-- GitHub Actions workflow `.github/workflows/maven.yml` continues to build and test the project automatically.
+- GitHub Actions workflow `.github/workflows/maven.yml` builds/tests and now also validates the Docker image.

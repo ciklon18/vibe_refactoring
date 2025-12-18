@@ -21,13 +21,19 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-Docker users can package and run the JAR inside a container after building with Maven.
+Build a container image with the included Dockerfile (from repo root):
+
+```sh
+docker build -t shopapi:local -f java-app/Dockerfile java-app
+docker run -p 8080:8080 shopapi:local
+```
 
 ## API overview
 
 * `GET /api/laptops` (list), `GET /api/laptops/{id}`, `POST /api/laptops/add`, `PUT /api/laptops/{id}`
 * Similar CRUD routes exist for `/api/monitors`, `/api/personal-computers`, and `/api/hard-drives`.
 * `GET /api/stats` — aggregated counts and total stock units for all categories.
+* `GET /api/stats/insights` — per-category counts, stock, average price, and inventory value.
 
 ## Testing
 
